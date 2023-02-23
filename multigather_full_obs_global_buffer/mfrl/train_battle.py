@@ -66,7 +66,7 @@ if __name__ == '__main__':
     log_dir = os.path.join(BASE_DIR,'data_{}/tmp'.format(args.run, args.algo))
     model_dir = os.path.join(BASE_DIR, 'data_{}/models/{}'.format(args.run, args.algo))
 
-    with open('multibattle_{0}.csv'.format(args.algo), 'w+') as myfile:
+    with open('multibattle_{0}_run_{1}.csv'.format(args.algo, args.run), 'w+') as myfile:
         myfile.write('{0},{1}\n'.format("Episode", "Reward"))
     
     if args.algo in ['mfq', 'mfac', 'mtmfq', 'GenQ_MFG']:
@@ -84,23 +84,13 @@ if __name__ == '__main__':
 
     models = [
         spawn_ai(args.algo, sess, env, player_handles[0], args.algo + '-main', args.max_steps),
+        # spawn_ai(args.algo, sess, env, player_handles[1], args.algo + '-oppo1', args.max_steps),
         spawn_ai('mfq', sess, env, player_handles[1], args.algo + '_mfq' + '-oppo1', args.max_steps),
         spawn_ai('il', sess, env, player_handles[1], args.algo + '_il' + '-oppo2', args.max_steps),
         spawn_ai('mtmfq', sess, env, player_handles[1], args.algo + '_mtmfq' + '-oppo3', args.max_steps),
         spawn_ai('GenQ_MFG', sess, env, player_handles[1], args.algo + '_GenQ_MFG' + '-oppo4', args.max_steps)
     ]
     adv_type_list = [args.algo, 'mfq', 'il', 'mtmfq', 'GenQ_MFG']
-
-    config = {
-            'max_len': 2**20,
-            'batch_size': 1024,
-            'obs_shape': env.get_view_space(player_handles[1]),
-            'feat_shape': env.get_feature_space(player_handles[1]),
-            'act_n': env.get_action_space(player_handles[1])[0],
-            'use_mean': True,
-            'use_dominant': True,
-            'sub_len': args.max_steps
-        }
 
     sess.run(tf.global_variables_initializer())
     
@@ -121,7 +111,7 @@ if __name__ == '__main__':
 
     
     for k in range(start_from, start_from + args.n_round):
-        eps = linear_decay(k, [0, int(args.n_round * 0.8), args.n_round], [1, 0.2, 0.1])
+        eps = linear_decay(k, [0, int(args.n_round * 0.7), args.n_round], [1, 0.2, 0.1])
         total_reward = runner.run(eps, k)
         with open('multibattle_{0}_run_{1}.csv'.format(args.algo, args.run), 'a') as myfile:
             myfile.write('{0},{1}\n'.format(k, total_reward[0]))

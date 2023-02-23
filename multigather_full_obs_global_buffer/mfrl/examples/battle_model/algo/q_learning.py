@@ -23,7 +23,7 @@ import copy
 
 
 class DQN(base.ValueNet):
-    def __init__(self, sess, name, handle, env, sub_len, memory_size=2**12, batch_size=1024, update_every=5):
+    def __init__(self, sess, name, handle, env, sub_len, memory_size=2**12, batch_size=256, update_every=5):
 
         super().__init__(sess, env, handle, name, update_every=update_every)
 
@@ -77,7 +77,7 @@ class DQN(base.ValueNet):
 
 
 class MFQ(base.ValueNet):
-    def __init__(self, sess, name, handle, env, sub_len, eps=1.0, update_every=5, memory_size=2**12, batch_size=1024):
+    def __init__(self, sess, name, handle, env, sub_len, eps=1.0, update_every=5, memory_size=2**12, batch_size=256):
         super().__init__(sess, env, handle, name, use_mf=True, update_every=update_every)
 
         config = {
@@ -136,7 +136,7 @@ class MFQ(base.ValueNet):
         print("[*] Loaded model from {}".format(file_path))
 
 class MTMFQ(base2.ValueNet):
-    def __init__(self, sess, name, handle, env, sub_len, eps=1.0, update_every=5, memory_size=2**12, batch_size=1024):
+    def __init__(self, sess, name, handle, env, sub_len, eps=1.0, update_every=5, memory_size=2**12, batch_size=256):
         super().__init__(sess, env, handle, name, use_mf=True, update_every=update_every)
 
         config = {
@@ -199,7 +199,7 @@ class MTMFQ(base2.ValueNet):
 
 
 class GenQ_MFG(base3.FullObserve_ValueNet):
-    def __init__(self, sess, name, handle, env, sub_len, eps=1.0, update_every=5, memory_size=2**12, batch_size=1024):
+    def __init__(self, sess, name, handle, env, sub_len, eps=1.0, update_every=5, memory_size=2**12, batch_size=256):
         super().__init__(sess, env, handle, name, use_mf=True, use_dominant=True, update_every=update_every)
 
         config = {

@@ -18,7 +18,7 @@ MFQ = q_learning.MFQ
 MTMFQ = q_learning.MTMFQ
 GenQ_MFG = q_learning.GenQ_MFG
 
-def spawn_ai(algo_name, sess, env, handle, human_name, max_steps, isDom=False, mem_size=2**20):
+def spawn_ai(algo_name, sess, env, handle, human_name, max_steps, isDom=False, mem_size=2**18):
     if algo_name == 'GenQ_MFG':
         model = GenQ_MFG(sess, human_name, handle, env, max_steps, memory_size=mem_size)
     elif algo_name == 'mfq':

@@ -16,7 +16,7 @@ from magent.gridworld import GridWorld
 
 
 class ValueNet:
-    def __init__(self, sess, env, handle, name, update_every=5, use_mf=False, learning_rate=1e-4, tau=0.005, gamma=0.99):
+    def __init__(self, sess, env, handle, name, update_every=5, use_mf=False, learning_rate=1e-5, tau=0.005, gamma=0.99):
         # assert isinstance(env, GridWorld)
         self.env = env
         self.name = name
@@ -90,8 +90,13 @@ class ValueNet:
             h_act_prob = tf.layers.dense(prob_emb, units=32, activation=active_func, name="Dense-Act-Prob")
             concat_layer = tf.concat([concat_layer, h_act_prob], axis=1)
 
-        dense2 = tf.layers.dense(concat_layer, units=128, activation=active_func, name="Dense2")
-        out = tf.layers.dense(dense2, units=64, activation=active_func, name="Dense-Out")
+        dense2 = tf.layers.dense(concat_layer, units=512, activation=active_func, name="Dense2")
+        # dense2_dropout = tf.layers.dropout(dense2, rate = 0.2, name="Dense2-dropout" )
+
+        dense3 = tf.layers.dense(dense2, units=512, activation=active_func, name="Dense3")
+        # dense3_dropout = tf.layers.dropout(dense3, rate = 0.2, name="Dense3-dropout" )
+        
+        out = tf.layers.dense(dense3, units=64, activation=active_func, name="Dense-Out")
 
         q = tf.layers.dense(out, units=self.num_actions, name="Q-Value")
 

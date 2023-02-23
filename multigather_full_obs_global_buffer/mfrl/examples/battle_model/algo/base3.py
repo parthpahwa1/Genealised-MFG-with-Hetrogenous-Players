@@ -124,25 +124,24 @@ class FullObserve_ValueNet:
         h_emb_type1 = tf.layers.dense(self.type1_feat_input, units=32, activation=active_func, name="Dense_Emb_type1", reuse=reuse)
 
         
-        concat_layer = tf.concat([h_obs, h_emb, h_obs_type0, h_emb_type0, h_obs_type1, h_emb_type1], axis=1)
+        concat_layer = tf.concat([h_obs, h_emb], axis=1)
 
         if self.use_mf:
             prob_emb = tf.layers.dense(self.act_prob_input0, units=64, activation=active_func, name='Prob-Emb0')
             h_act_prob = tf.layers.dense(prob_emb, units=32, activation=active_func, name="Dense-Act-Prob0")
-            concat_layer = tf.concat([concat_layer, h_act_prob], axis=1)
+            concat_layer = tf.concat([concat_layer, h_obs_type0, h_emb_type0, h_act_prob], axis=1)
 
             prob_emb = tf.layers.dense(self.act_prob_input1, units=64, activation=active_func, name='Prob-Emb1')
             h_act_prob = tf.layers.dense(prob_emb, units=32, activation=active_func, name="Dense-Act-Prob1")
-            concat_layer = tf.concat([concat_layer, h_act_prob], axis=1)
+            concat_layer = tf.concat([concat_layer, h_obs_type1, h_emb_type1, h_act_prob], axis=1)
 
-        
         dense2 = tf.layers.dense(concat_layer, units=1024, activation=active_func, name="Dense2")
-        dense2_dropout = tf.layers.dropout(dense2, rate = 0.2, name="Dense2-dropout" )
+        # dense2_dropout = tf.layers.dropout(dense2, rate = 0.2, name="Dense2-dropout" )
 
-        dense3 = tf.layers.dense(dense2_dropout, units=256, activation=active_func, name="Dense3")
-        dense3_dropout = tf.layers.dropout(dense3, rate = 0.2, name="Dense3-dropout" )
+        dense3 = tf.layers.dense(dense2, units=1024, activation=active_func, name="Dense3")
+        # dense3_dropout = tf.layers.dropout(dense3, rate = 0.2, name="Dense3-dropout" )
         
-        out = tf.layers.dense(dense3_dropout, units=64, activation=active_func, name="Dense-Out")
+        out = tf.layers.dense(dense3, units=64, activation=active_func, name="Dense-Out")
         q = tf.layers.dense(out, units=self.num_actions, name="Q-Value")
 
         return q, h_obs, h_emb

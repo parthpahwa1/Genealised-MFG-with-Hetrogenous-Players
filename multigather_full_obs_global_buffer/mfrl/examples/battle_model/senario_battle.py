@@ -162,19 +162,24 @@ def get_mean_field_feature(mean_field_feature, state, number_of_agent_types):
     return mean_field_feature
 
 
-def build_agent_list(model_list, adv_type_list, self_adversary_prob=0.1):
+def build_agent_list(model_list, adv_type_list, self_adversary_prob=0.15):
     
     # Choose random adversary
     adv_index = np.random.choice([x for x in range(1, len(model_list))])
-
+    main_agent_indx = 0
     # In 20% of the cases
     if np.random.uniform(0, 1) <= self_adversary_prob:
         adv_index = 0
 
+    if np.random.uniform(0, 1) <= 0.5:
+        temp = main_agent_indx
+        main_agent_indx = adv_index
+        adv_index = temp
+
     agents = [
         {
-            'model': model_list[0],
-            'type': adv_type_list[0]
+            'model': model_list[main_agent_indx],
+            'type': adv_type_list[main_agent_indx]
         },
         {
             'model': model_list[adv_index],
@@ -242,14 +247,14 @@ def play_multi(env, n_round, map_size, max_steps, handles, model_list, adv_type_
                 acts[i], mean_obs[i], mean_feat[i] = agents[i]['model'].act(
                     state=state[i],
                     
-                    prob0=mean_field_actions['agent_' + str(i)][0],
-                    prob1=mean_field_actions['agent_' + str(i)][1],
+                    prob0=mean_field_actions['agent_' + str(i)][i],
+                    prob1=mean_field_actions['agent_' + str(i)][(i+1)%2],
 
-                    type0_state0=mean_field_obs['agent_' + str(i)][0],
-                    type0_state1=mean_field_feature['agent_'+ str(i)][0],
+                    type0_state0=mean_field_obs['agent_' + str(i)][i],
+                    type0_state1=mean_field_feature['agent_'+ str(i)][i],
                     
-                    type1_state0=mean_field_obs['agent_'+ str(i)][1],
-                    type1_state1=mean_field_feature['agent_' + str(i)][1],
+                    type1_state0=mean_field_obs['agent_'+ str(i)][(i+1)%2],
+                    type1_state1=mean_field_feature['agent_' + str(i)][(i+1)%2],
                     eps=eps
                 )
             elif agents[i]['type'] == 'mtmfq':
@@ -289,7 +294,7 @@ def play_multi(env, n_round, map_size, max_steps, handles, model_list, adv_type_
 
         
         if train:
-            model_list[0].flush_buffer(**buffer)
+            agents[0]['model'].flush_buffer(**buffer)
             # model_list[1].flush_buffer(**buffer)
             # model_list[2].flush_buffer(**buffer)
             # model_list[3].flush_buffer(**buffer)
@@ -302,27 +307,28 @@ def play_multi(env, n_round, map_size, max_steps, handles, model_list, adv_type_
         }
 
         buffer['prob'] = np.tile(mean_field_actions['former_prob'][1], (len(state[1][0]), 1))
-        buffer['prob0'] = mean_field_actions['agent_1'][0]
-        buffer['prob1'] = mean_field_actions['agent_1'][1]
+        buffer['prob0'] = mean_field_actions['agent_1'][1]
+        buffer['prob1'] = mean_field_actions['agent_1'][0]
         
         # Extra
-        buffer['prob2'] = mean_field_actions['agent_1'][0]
-        buffer['prob3'] = mean_field_actions['agent_1'][1]
+        buffer['prob2'] = mean_field_actions['agent_1'][1]
+        buffer['prob3'] = mean_field_actions['agent_1'][0]
 
-        buffer['type0_state0'] = mean_field_obs['agent_1'][0]
-        buffer['type0_state1'] = mean_field_feature['agent_1'][0]
+        buffer['type0_state0'] = mean_field_obs['agent_1'][1]
+        buffer['type0_state1'] = mean_field_feature['agent_1'][1]
 
-        buffer['type1_state0'] = mean_field_obs['agent_1'][1]
-        buffer['type1_state1'] = mean_field_feature['agent_1'][1]
+        buffer['type1_state0'] = mean_field_obs['agent_1'][0]
+        buffer['type1_state1'] = mean_field_feature['agent_1'][0]
 
 
         if train:
+            agents[1]['model'].flush_buffer(**buffer)
             # opponent_buffer.push(**buffer)
             # model_list[0].flush_buffer(**buffer)
-            model_list[1].flush_buffer(**buffer)
-            model_list[2].flush_buffer(**buffer)
-            model_list[3].flush_buffer(**buffer)
-            model_list[4].flush_buffer(**buffer)
+            # model_list[1].flush_buffer(**buffer)
+            # model_list[2].flush_buffer(**buffer)
+            # model_list[3].flush_buffer(**buffer)
+            # model_list[4].flush_buffer(**buffer)
 
         
         for i in range(n_group):
@@ -357,12 +363,13 @@ def play_multi(env, n_round, map_size, max_steps, handles, model_list, adv_type_
             print("Remaining food is:", food_num)
 
     if train:
-        loss[0] = model_list[0].train()
-        loss[1] = model_list[1].train()
-        loss[1] += model_list[2].train()
-        loss[1] += model_list[3].train()
-        loss[1] += model_list[4].train()
-        loss[1] /= 3
+        loss[0] = agents[0]['model'].train()
+        loss[1] = agents[1]['model'].train()
+        # loss[1] = model_list[1].train()
+        # loss[1] += model_list[2].train()
+        # loss[1] += model_list[3].train()
+        # loss[1] += model_list[4].train()
+        # loss[1] /= 3
         # loss[1] = models[1].train()
     
 
@@ -474,7 +481,7 @@ def battle(env, n_round, map_size, max_steps, handles, model_list, print_every, 
         # clear dead agents
         env.clear_dead()
         nums = [env.get_num(handle) for handle in handles]
-
+        food_num = env.get_num(food_handle)
         info = {"Ave-Reward": np.round(rewards, decimals=6), "NUM": nums}
 
         step_ct += 1
@@ -486,5 +493,5 @@ def battle(env, n_round, map_size, max_steps, handles, model_list, print_every, 
         mean_rewards[i] = sum(mean_rewards[i]) / len(mean_rewards[i])
         total_rewards[i] = sum(total_rewards[i])
 
-    return max_nums, nums, mean_rewards, total_rewards, loss
+    return max_nums, nums, mean_rewards, total_rewards, loss, food_num
 

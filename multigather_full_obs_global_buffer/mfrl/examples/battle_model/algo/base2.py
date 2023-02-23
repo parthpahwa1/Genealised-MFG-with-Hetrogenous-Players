@@ -106,8 +106,13 @@ class ValueNet:
             # h_act_prob = tf.layers.dense(prob_emb, units=32, activation=active_func, name="Dense-Act-Prob3")
             # concat_layer = tf.concat([concat_layer, h_act_prob], axis=1)
         
-        dense2 = tf.layers.dense(concat_layer, units=128, activation=active_func, name="Dense2")
-        out = tf.layers.dense(dense2, units=64, activation=active_func, name="Dense-Out")
+        dense2 = tf.layers.dense(concat_layer, units=512, activation=active_func, name="Dense2")
+        # dense2_dropout = tf.layers.dropout(dense2, rate = 0.2, name="Dense2-dropout" )
+
+        dense3 = tf.layers.dense(dense2, units=512, activation=active_func, name="Dense3")
+        # dense3_dropout = tf.layers.dropout(dense3, rate = 0.2, name="Dense3-dropout" )
+        
+        out = tf.layers.dense(dense3, units=64, activation=active_func, name="Dense-Out")
 
         q = tf.layers.dense(out, units=self.num_actions, name="Q-Value")
 

@@ -36,6 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('--idx', nargs='*', required=True)
     parser.add_argument('--mtmfqp', type=int, choices={0,1,2,3}, default=2, help='set the position of mtmfq')
     parser.add_argument('--gmfqp', type=int, choices={0,1,2,3}, default=3, help='set the position of GenQ_MF')
+    parser.add_argument('--run', type=int, default=1, help='run number')
     
     
     args = parser.parse_args()
@@ -50,8 +51,8 @@ if __name__ == '__main__':
     tf_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
     tf_config.gpu_options.allow_growth = True
 
-    main_model_dir = os.path.join(BASE_DIR, 'data/models/{}-main'.format(args.algo))
-    oppo_model_dir1 = os.path.join(BASE_DIR, 'data/models/{}-main'.format(args.oppo1))
+    main_model_dir = os.path.join(BASE_DIR, 'data_{}/models/{}-main'.format(args.run, args.algo))
+    oppo_model_dir1 = os.path.join(BASE_DIR, 'data_{}/models/{}-main'.format(args.run, args.oppo1))
 
     sess = tf.Session(config=tf_config)
     player_handles = handles[1:]
@@ -63,28 +64,16 @@ if __name__ == '__main__':
     adv_type_list = [args.algo, args.oppo1]
 
 
-    config = {
-            'max_len': 2**20,
-            'batch_size': 1024,
-            'obs_shape': self.view_space,
-            'feat_shape': self.feature_space,
-            'act_n': self.num_actions,
-            'use_mean': True,
-            'use_dominant': True,
-            'sub_len': sub_len
-        }
-
-    global_replay_buffer = tools3.MemoryGroup(**config)
 
     runner = tools.Runner(sess, env, handles, args.map_size, args.max_steps, models, battle, adv_type_list = adv_type_list, render_every=0)
 
     win_cnt = {'main': 0, 'opponent1': 0, 'draw': 0}
     total_rewards = []
-    with open('storepoints_multibattle_{0}_{1}.csv'.format(args.algo, args.oppo1), 'w+') as myfile:
+    with open('storepoints_multibattle_{0}_{1}_{2}.csv'.format(args.run, args.algo, args.oppo1), 'w+') as myfile:
         myfile.write('{0},{1},{2}\n'.format("Game", "Reward 1", "Reward 2"))
     for k in range(0, args.n_round):
         total_rewards = runner.run(0.0, k, win_cnt=win_cnt)
-        with open('storepoints_multibattle_{0}_{1}.csv'.format(args.algo, args.oppo1), 'a') as myfile:
+        with open('storepoints_multibattle_{0}_{1}_{2}.csv'.format(args.run, args.algo, args.oppo1), 'a') as myfile:
             myfile.write('{0},{1},{2}\n'.format(k, total_rewards[0], total_rewards[1]))
 
     print('\n[*] >>> WIN_RATE: [{0}] {1} / [{2}] {3} / DRAW {4}'.format(args.algo, win_cnt['main'] / args.n_round, args.oppo1, win_cnt['opponent1'] / args.n_round, win_cnt['draw']/ args.n_round))
