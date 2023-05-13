@@ -1,0 +1,40 @@
+# Compiled binaries
+*.pyd
+*.so
+*.o
+*.obj
+
+# Data and log files
+*.log
+*.csv
+*.h5
+*.npy
+*.npz
+
+# Jupyter Notebook files
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE-specific files
+*.swp
+*.swo
+*~
+*.bak
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# TensorFlow
+*.pb
+*.pbtxt
+*.ckpt
+*.meta
+*.index
+*.data-00000-of-00001
